@@ -1,0 +1,166 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.daoImpl;
+
+import com.shop.DbConnection.DbConnection;
+import com.shop.dao.PurchaseDao;
+import com.shop.model.Purchase;
+import com.shop.model.Vendor;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ *
+ * @author Jatendar
+ */
+public class PurchaseDaoImpl implements PurchaseDao {
+
+    static Connection con = DbConnection.getConnection();
+
+    @Override
+    public Integer addPurchase(Purchase purchase) {
+        Integer roll = null;
+        try {
+            java.sql.Date date = new java.sql.Date(purchase.getPurchaseDate().getTime());
+            String addQuery = "INSERT INTO purchase(vendor_id,purchase_code,purchase_date,grand_total,discount,remarks,created_date,statuss) value(?,?,?,?,?,?,CURDATE(),?)";
+            PreparedStatement preparedStatement = con.prepareStatement(addQuery);
+            preparedStatement.setInt(1, purchase.getVendor().getVendorId());
+            preparedStatement.setString(2, purchase.getPurchaseCode());
+            preparedStatement.setDate(3, date);
+            preparedStatement.setString(4, purchase.getGrandTotal());
+            preparedStatement.setString(5, purchase.getDiscount());
+            preparedStatement.setString(6, purchase.getRemarks());
+           // preparedStatement.setInt(7, purchase.getCreatedName());          
+            preparedStatement.setString(7, purchase.getStatus());
+            roll = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer deletePurchase(Integer purchaseId) {
+        Integer roll = null;
+        try {
+            String deleteQuery = "DELETE FROM purchase WHERE purchase_id=?";
+            PreparedStatement ps = con.prepareStatement(deleteQuery);
+            ps.setInt(1, purchaseId);
+            roll = ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer updatePurchase(Purchase purchase) {
+        Integer roll = null;
+        try {
+            java.sql.Date date = new java.sql.Date(purchase.getPurchaseDate().getTime());
+            String updateQuery = "UPDATE purchase SET vendor_id =?,purchase_code=?,purchase_date=?,grand_total=?,discount=?,remarks=?,modified_date = CURDATE(),statuss=? where purchase_id = ?";
+            PreparedStatement preparedStatement = con.prepareStatement(updateQuery);
+            preparedStatement.setInt(1, purchase.getVendor().getVendorId());
+            preparedStatement.setString(2, purchase.getPurchaseCode());
+            preparedStatement.setDate(3,  date);
+            preparedStatement.setString(4, purchase.getGrandTotal());
+            preparedStatement.setString(5, purchase.getDiscount());
+            preparedStatement.setString(6, purchase.getRemarks());
+            //preparedStatement.setInt(7, purchase.getModifedName());
+            preparedStatement.setString(7, purchase.getStatus());
+            preparedStatement.setInt(8, purchase.getPurchaseId());
+            roll = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public List<Purchase> viewAllRecord() {
+        List<Purchase> list = new ArrayList<>();
+        try {
+            String viewAll = "select * from purchase";
+            PreparedStatement ps = con.prepareStatement(viewAll);
+            ResultSet set = ps.executeQuery();
+            while (set.next()) {
+                Purchase p = new Purchase();
+                Vendor v = new Vendor();
+                v.setVendorId(set.getInt("vendor_id"));
+                p.setPurchaseId(set.getInt("purchase_id"));
+                p.setVendor(v);
+                p.setPurchaseCode(set.getString("purchase_code"));
+                p.setPurchaseDate(set.getDate("purchase_date"));
+                p.setGrandTotal(set.getString("grand_total"));
+                p.setDiscount(set.getString("discount"));
+                p.setRemarks(set.getString("remarks"));
+                p.setCreatedDate(set.getString("created_date"));
+                p.setCreatedName(set.getInt("created_by"));
+                p.setModifiedDate(set.getString("modified_date"));
+                p.setModifedName(set.getInt("modified_by"));
+                p.setStatus(set.getString("statuss"));
+                list.add(p);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
+    public Integer viewByName(String purchaseCode) {
+        Integer roll = null;
+        ResultSet set = null;
+        try {
+            String viewName = "SELECT purchase_id FROM purchase WHERE purchase_code = ?";
+            PreparedStatement ps = con.prepareStatement(viewName);
+            ps.setString(1, purchaseCode);
+            set = ps.executeQuery();
+            while (set.next()) {
+                roll = set.getInt("purchase_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Purchase viewById(Integer purchaseId) {
+        Purchase p = new Purchase();
+        try {
+            String viewId = "SELECT * FROM purchase WHERE purchase_id=?";
+            PreparedStatement preparedStatement = con.prepareStatement(viewId);
+            preparedStatement.setInt(1, purchaseId);
+            ResultSet set = preparedStatement.executeQuery();
+            while (set.next()) {
+                Vendor v = new Vendor();
+                v.setVendorId(set.getInt("vendor_id"));
+                p.setPurchaseId(set.getInt("purchase_id"));
+                p.setVendor(v);
+                p.setPurchaseCode(set.getString("purchase_code"));
+                p.setPurchaseDate(set.getDate("purchase_date"));
+                p.setGrandTotal(set.getString("grand_total"));
+                p.setDiscount(set.getString("discount"));
+                p.setRemarks(set.getString("remarks"));
+                p.setCreatedDate(set.getString("created_date"));
+                p.setCreatedName(set.getInt("created_by"));
+                p.setModifiedDate(set.getString("modified_date"));
+                p.setModifedName(set.getInt("modified_by"));
+                p.setStatus(set.getString("statuss"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return p;
+    }
+
+}
