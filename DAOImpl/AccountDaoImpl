@@ -1,0 +1,156 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.daoImpl;
+
+import com.shop.DbConnection.DbConnection;
+import com.shop.dao.AccountDao;
+import com.shop.model.Account;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ *
+ * @author Jatendar
+ */
+public class AccountDaoImpl implements AccountDao {
+
+    static Connection con = DbConnection.getConnection();
+
+    @Override
+    public Integer addAccount(Account account) {
+        Integer roll = null;
+        try {
+            String addQuery = "INSERT INTO account(account_title,bank_name,account_number,current_balance,remarks,created_date,statuss) value(?,?,?,?,?,CURDATE(),?)";
+            PreparedStatement preparedStatement = con.prepareStatement(addQuery);
+            preparedStatement.setString(1, account.getAccountTitle());
+            preparedStatement.setString(2, account.getBankName());
+            preparedStatement.setString(3, account.getAccountNumber());
+            preparedStatement.setString(4, account.getCurrentBalance());
+            preparedStatement.setString(5, account.getRemarks());
+//            preparedStatement.setInt(6, account.getCreatedName());
+            preparedStatement.setString(6, account.getStatus());
+            roll = preparedStatement.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer deleteAccount(Integer accountId) {
+        Integer roll = null;
+        try {
+            String deletQuery = "DELETE FROM account WHERE account_id = ?";
+            PreparedStatement ps = con.prepareStatement(deletQuery);
+            ps.setInt(1, accountId);
+            roll = ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer updateAccount(Account account) {
+        Integer roll = null;
+        try {
+            String updateQuery = "UPDATE account SET account_title = ?,bank_name =?,account_number=?,current_balance=?,remarks=?,modified_date=CURDATE(),statuss=? WHERE account_id=?";
+            PreparedStatement preparedStatement = con.prepareStatement(updateQuery);
+            preparedStatement.setString(1, account.getAccountTitle());
+            preparedStatement.setString(2, account.getBankName());
+            preparedStatement.setString(3, account.getAccountNumber());
+            preparedStatement.setString(4, account.getCurrentBalance());
+            preparedStatement.setString(5, account.getRemarks());
+//            preparedStatement.setInt(6, account.getModifedName());
+            preparedStatement.setString(6, account.getStatus());
+            preparedStatement.setInt(7, account.getAccountId());
+            roll = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public List<Account> viewAllRecord() {
+        List<Account> list = new ArrayList<>();
+        try {
+            String viewAll = "SELECT * FROM account";
+            PreparedStatement ps = con.prepareStatement(viewAll);
+            ResultSet set = ps.executeQuery();
+            while (set.next()) {
+                Account account = new Account();
+                account.setAccountTitle(set.getString("account_title"));
+                account.setBankName(set.getString("bank_name"));
+                account.setAccountNumber(set.getString("account_number"));
+                account.setCurrentBalance(set.getString("current_balance"));
+                account.setRemarks(set.getString("remarks"));
+                account.setCreatedDate(set.getString("created_date"));
+                account.setCreatedName(set.getInt("created_by"));
+                account.setModifiedDate(set.getString("modified_date"));
+                account.setModifedName(set.getInt("modifed_by"));
+                account.setAccountId(set.getInt("account_id"));
+                account.setStatus(set.getString("statuss"));
+                list.add(account);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
+    public Integer viewByName(String accountTitle) {
+        Integer roll = null;
+        ResultSet set = null;
+        try {
+            String query = "select account_id from account where account_title = ?";
+            PreparedStatement statment = con.prepareStatement(query);
+            statment.setString(1, accountTitle);
+            set = statment.executeQuery();
+            while (set.next()) {
+                roll = set.getInt("account_id");
+            }
+        } catch (SQLException exe) {
+            exe.printStackTrace();
+        }
+        return roll;
+
+    }
+
+    @Override
+    public Account viewById(Integer accountId) {
+        Account account = new Account();
+        try {
+            String viewId = "select * from account where account_id=?";
+            PreparedStatement ps = con.prepareStatement(viewId);
+            ps.setInt(1, accountId);
+            ResultSet set = ps.executeQuery();
+            while(set.next())
+            {
+                account.setAccountTitle(set.getString("account_title"));
+                account.setBankName(set.getString("bank_name"));
+                account.setAccountNumber(set.getString("account_number"));
+                account.setCurrentBalance(set.getString("current_balance"));
+                account.setRemarks(set.getString("remarks"));
+                account.setCreatedDate(set.getString("created_date"));
+                account.setCreatedName(set.getInt("created_by"));
+                account.setModifiedDate(set.getString("modified_date"));
+                account.setModifedName(set.getInt("modifed_by"));
+                account.setAccountId(set.getInt("account_id"));
+                account.setStatus(set.getString("statuss"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return account;
+    }
+
+}
