@@ -1,0 +1,143 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.daoImpl;
+
+import com.shop.DbConnection.DbConnection;
+import com.shop.dao.CategoryDao;
+import com.shop.model.Category;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ *
+ * @author Jatendar
+ */
+public class CategoryDaoImpl implements CategoryDao {
+    static Connection con = DbConnection.getConnection();
+    @Override
+    public Integer addCategory(Category category) {
+        Integer roll = null;
+        try {
+            String addQuery = "INSERT INTO category(category,remarks,created_date,statuss) value(?,?,CURDATE(),?)";
+            PreparedStatement preparedStatement = con.prepareStatement(addQuery);
+            preparedStatement.setString(1, category.getCategory());
+            preparedStatement.setString(2, category.getRemarks());
+//            preparedStatement.setInt(3, category.getCreatedName());
+            preparedStatement.setString(3, category.getStatus());
+            roll = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer deleteCategory(Integer categoryId) {
+        Integer roll = null;
+        try {
+            String deletQuery = "DELETE FROM category WHERE category_id = ?";
+            PreparedStatement ps = con.prepareStatement(deletQuery);
+            ps.setInt(1, categoryId);
+            roll = ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer updateCategory(Category category) {
+        Integer roll = null;
+        try {
+            String updateQuery = "UPDATE category SET category = ?,remarks =?,modified_date=CURDATE(),statuss=? WHERE category_id=?";
+            PreparedStatement preparedStatement = con.prepareStatement(updateQuery);
+            preparedStatement.setString(1, category.getCategory());
+            preparedStatement.setString(2, category.getRemarks());   
+ //           preparedStatement.setInt(3, category.getModifedName());
+            preparedStatement.setString(3, category.getStatus());
+            preparedStatement.setInt(4, category.getCategoryId());
+            roll = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public List<Category> viewAllRecord() {
+        List<Category> list = new ArrayList<>();
+        try {
+            String viewAll = "select * from category";
+            PreparedStatement ps = con.prepareStatement(viewAll);
+            ResultSet set = ps.executeQuery();
+            while(set.next())
+            {
+                Category c = new Category();
+                c.setCategoryId(set.getInt("category_id"));
+                c.setCategory(set.getString("category"));
+                c.setRemarks(set.getString("remarks"));
+                c.setCreatedDate(set.getString("created_date"));
+                c.setCreatedName(set.getInt("created_by"));
+                c.setModifedName(set.getInt("modified_by"));
+                c.setModifiedDate(set.getString("modified_date"));
+                c.setStatus(set.getString("statuss"));
+                list.add(c);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
+    public Integer viewByName(String category) {
+        Integer roll = null;
+        ResultSet set = null;
+        try {
+            String viewName = "SELECT category_id FROM category WHERE category = ?";
+            PreparedStatement ps = con.prepareStatement(viewName);
+            ps.setString(1, category);
+            set = ps.executeQuery();
+            while(set.next())
+            {
+                roll = set.getInt("category_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Category viewById(Integer categoryId) {
+        Category c = new Category();
+        try {
+            String viewId = "SELECT * FROM category WHERE category_id=?";
+            PreparedStatement preparedStatement = con.prepareStatement(viewId);
+            preparedStatement.setInt(1, categoryId);
+            ResultSet set = preparedStatement.executeQuery();
+            while(set.next())
+            {
+                c.setCategoryId(set.getInt("category_id"));
+                c.setCategory(set.getString("category"));
+                c.setRemarks(set.getString("remarks"));
+                c.setCreatedDate(set.getString("created_date"));
+                c.setCreatedName(set.getInt("created_by"));
+                c.setModifedName(set.getInt("modified_by"));
+                c.setModifiedDate(set.getString("modified_date"));
+                 c.setStatus(set.getString("statuss"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return c;
+    }
+
+}
