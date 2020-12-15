@@ -1,0 +1,27 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.dao;
+
+import com.shop.model.Permission;
+import com.shop.model.Role;
+import com.shop.model.RolePermission;
+import java.util.List;
+
+/**
+ *
+ * @author Jatendar
+ */
+public interface RolePermissionDao {
+    public Integer addRollPermission(RolePermission rolePermission);
+    public Integer addRollPermissions(Role roll,Permission permission);
+    public Integer updateRollPermission(RolePermission roll);
+    public Integer deleteRollPermission(Integer id);
+    public List<RolePermission> viewAllRecord();
+    //public Integer viewByName(String name);
+    public RolePermission viewByIds(Role id,Permission name);
+    public RolePermission viewById(Integer id);
+    public Integer getRolePermissionId(Role r, Permission p);
+}
