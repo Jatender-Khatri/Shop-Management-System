@@ -1,0 +1,155 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.daoImpl;
+
+import com.shop.DbConnection.DbConnection;
+import com.shop.dao.PurchaseTranscationHistoryDao;
+import com.shop.model.Account;
+import com.shop.model.Purchase;
+import com.shop.model.PurchaseTranscationHistory;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ *
+ * @author Jatendar
+ */
+public class PurchaseTransactionHistoryDaoImpl implements PurchaseTranscationHistoryDao {
+
+    static Connection con = DbConnection.getConnection();
+
+    @Override
+    public Integer addPurchaseTranscationHistory(PurchaseTranscationHistory purchaseTranscationHistory) {
+        Integer roll = null;
+        try {
+            java.sql.Date date = new java.sql.Date(purchaseTranscationHistory.getPurchaeDate().getTime());
+            String addQuery = "INSERT INTO purchase_transaction_history(account_id,purchase_date,purchase_id,transaction_amount,remarks,created_date,statuss) value(?,?,?,?,?,CURDATE(),?)";
+            PreparedStatement preparedStatement = con.prepareStatement(addQuery);
+            preparedStatement.setInt(1, purchaseTranscationHistory.getAccount().getAccountId());
+            preparedStatement.setDate(2, date);
+            preparedStatement.setInt(3, purchaseTranscationHistory.getPurchase().getPurchaseId());
+            preparedStatement.setString(4, purchaseTranscationHistory.getTranscationAmount());
+            preparedStatement.setString(5, purchaseTranscationHistory.getRemarks());
+//            preparedStatement.setInt(6, purchaseTranscationHistory.getCreatedName());           
+            preparedStatement.setString(6, purchaseTranscationHistory.getStatus());
+            roll = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer deletePurchaseTranscationHistory(Integer purchaseTranscationHistoryId) {
+        Integer roll = null;
+        try {
+            String deleteQuery = "DELETE FROM purchase_transaction_history WHERE purchase_transaction_history_id=?";
+            PreparedStatement ps = con.prepareStatement(deleteQuery);
+            ps.setInt(1, purchaseTranscationHistoryId);
+            roll = ps.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer updatePurchaseTranscationHistory(PurchaseTranscationHistory purchaseTranscationHistory) {
+        Integer roll = null;
+        try {
+            java.sql.Date date = new java.sql.Date(purchaseTranscationHistory.getPurchaeDate().getTime());
+            String updateQuery = "UPDATE purchase_transaction_history SET account_id =?,purchase_date=?,purchase_id=?,transaction_amount=?,remarks=?,modified_date = CURDATE(),statuss=? where purchase_transaction_history_id = ?";
+            PreparedStatement preparedStatement = con.prepareStatement(updateQuery);
+            preparedStatement.setInt(1, purchaseTranscationHistory.getAccount().getAccountId());
+            preparedStatement.setDate(2, date);
+            preparedStatement.setInt(3, purchaseTranscationHistory.getPurchase().getPurchaseId());
+            preparedStatement.setString(4, purchaseTranscationHistory.getTranscationAmount());
+            preparedStatement.setString(5, purchaseTranscationHistory.getRemarks());
+            
+//            preparedStatement.setInt(6, purchaseTranscationHistory.getModifedName());
+            preparedStatement.setString(6, purchaseTranscationHistory.getStatus());
+            preparedStatement.setInt(7, purchaseTranscationHistory.getPurcchaseTranscationHistoryId());
+            roll = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public List<PurchaseTranscationHistory> viewAllRecord() {
+        List<PurchaseTranscationHistory> list = new ArrayList<>();
+        try {
+            String viewAll = "select * from purchase_transaction_history";
+            PreparedStatement ps = con.prepareStatement(viewAll);
+            ResultSet set = ps.executeQuery();
+            while (set.next()) {
+                PurchaseTranscationHistory history = new PurchaseTranscationHistory();
+                Account a = new Account();
+                a.setAccountId(set.getInt("account_id"));
+                Purchase p = new Purchase();
+                p.setPurchaseId(set.getInt("purchase_id"));
+                history.setAccount(a);
+                history.setPurchase(p);
+                history.setPurchaeDate(set.getDate("purchase_date"));
+                history.setTranscationAmount(set.getString("transaction_amount"));
+                history.setRemarks(set.getString("remarks"));
+                history.setCreatedDate(set.getString("created_date"));
+                history.setCreatedName(set.getInt("created_by"));
+                history.setModifiedDate(set.getString("modified_date"));
+                history.setModifedName(set.getInt("modified_by"));
+                history.setStatus(set.getString("statuss"));
+                history.setPurcchaseTranscationHistoryId(set.getInt("purchase_transaction_history_id"));
+                list.add(history);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
+    public Integer viewByName(String category) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public PurchaseTranscationHistory viewById(Integer purchaseTranscationHistoryId) {
+        PurchaseTranscationHistory history = new PurchaseTranscationHistory();
+        try {
+            String viewId = "SELECT * FROM purchase_transaction_history WHERE purchase_transaction_history_id=?";
+            PreparedStatement preparedStatement = con.prepareStatement(viewId);
+            preparedStatement.setInt(1, purchaseTranscationHistoryId);
+            ResultSet set = preparedStatement.executeQuery();
+            while (set.next()) {
+                Account a = new Account();
+                a.setAccountId(set.getInt("account_id"));
+                Purchase p = new Purchase();
+                p.setPurchaseId(set.getInt("purchase_id"));
+                history.setAccount(a);
+                history.setPurchase(p);
+                history.setPurchaeDate(set.getDate("purchase_date"));
+                history.setTranscationAmount(set.getString("transaction_amount"));
+                history.setRemarks(set.getString("remarks"));
+                history.setCreatedDate(set.getString("created_date"));
+                history.setCreatedName(set.getInt("created_by"));
+                history.setModifiedDate(set.getString("modified_date"));
+                history.setModifedName(set.getInt("modified_by"));
+                history.setStatus(set.getString("statuss"));
+                history.setPurcchaseTranscationHistoryId(set.getInt("purchase_transaction_history_id"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return history;
+    }
+
+}
