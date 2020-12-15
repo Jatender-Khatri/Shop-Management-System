@@ -1,0 +1,22 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.dao;
+
+import com.shop.model.Account;
+import java.util.List;
+
+/**
+ *
+ * @author Jatendar
+ */
+public interface AccountDao {
+    public Integer addAccount(Account account);
+    public Integer deleteAccount(Integer accountId);
+    public Integer updateAccount(Account account);
+    public List<Account> viewAllRecord();
+    public Integer viewByName(String accountTitle);
+    public Account viewById(Integer accountId);
+}
