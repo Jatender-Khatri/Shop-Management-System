@@ -1,0 +1,164 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.daoImpl;
+
+import com.shop.DbConnection.DbConnection;
+import com.shop.dao.OrderDao;
+import com.shop.model.Order;
+import com.shop.model.Product;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ *
+ * @author Jatendar
+ */
+public class OrderDaoImple implements OrderDao {
+
+    static Connection con = DbConnection.getConnection();
+
+    @Override
+    public Integer addOrder(Order order) {
+        Integer roll = null;
+        try {
+            java.sql.Date date = new java.sql.Date(order.getOrderDate().getTime());
+            String addQuery = "INSERT INTO orderinformation(order_code,customer_name, customer_address, order_date, grand_total, remarks, created_date, statuss)\n"
+                    + "VALUE(?,?,?,?,?,?,CURDATE(),?)";
+            PreparedStatement ps = con.prepareStatement(addQuery);
+            ps.setString(1, order.getOrderCode());
+            ps.setString(2, order.getCustomerName());
+            ps.setString(3, order.getCustomerAddress());
+            ps.setDate(4, date);
+            ps.setDouble(5, order.getGrandTotal());
+            ps.setString(6, order.getRemarks());
+//            ps.setInt(7, order.getCreatedName());
+            ps.setString(7, order.getStatus());
+            roll = ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer updateOrder(Order order) {
+        Integer roll = null;
+        try {
+            java.sql.Date date = new java.sql.Date(order.getOrderDate().getTime());
+            String updateQuery = "UPDATE orderinformation SET order_code = ?, customer_name = ?, customer_address = ?, ordere_date = ?, grand_total = ?\n"
+                    + "remarks = ?, modified_date = CURDATE(), modifed_by = ?, statuss = ? WHERE order_id = ?";
+            PreparedStatement ps = con.prepareStatement(updateQuery);
+            ps.setString(1, order.getOrderCode());
+            ps.setString(2, order.getCustomerName());
+            ps.setString(3, order.getCustomerAddress());
+            ps.setDate(4, date);
+            ps.setDouble(5, order.getGrandTotal());
+            ps.setString(6, order.getRemarks());
+            ps.setInt(7, order.getModifedName());
+            ps.setString(8, order.getStatus());
+            ps.setInt(9, order.getOrderId());
+            roll = ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer deleteOrder(Integer orderID) {
+        Integer roll = null;
+        try {
+            String deleteQuery = "DELETE FROM orderinformation WHERE order_id = ?";
+            PreparedStatement ps = con.prepareStatement(deleteQuery);
+            ps.setInt(1, orderID);
+            roll = ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Order getOrderByID(Integer orderID) {
+        Order o = new Order();
+        try {
+            String iString = "SELECT * FROM orderinformation WHERE order_id = ?";
+            PreparedStatement ps = con.prepareStatement(iString);
+            ps.setInt(1, orderID);
+            ResultSet set = ps.executeQuery();
+            while (set.next()) {
+                o.setOrderCode(set.getString("order_code"));
+                o.setCustomerAddress(set.getString("customer_name"));
+                o.setCustomerAddress(set.getString("customer_address"));
+                o.setOrderDate(set.getDate("order_date"));
+                o.setGrandTotal(set.getDouble("grand_total"));
+                o.setRemarks(set.getString("remarks"));
+                o.setCreatedDate(set.getString("created_date"));
+                o.setCreatedName(set.getInt("created_by"));
+                o.setModifedName(set.getInt("modified_by"));
+                o.setModifiedDate(set.getString("modified_date"));
+                o.setStatus(set.getString("statuss"));
+                o.setOrderId(set.getInt("order_id"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return o;
+    }
+
+    @Override
+    public Integer getOrderIDByCode(String orderCode) {
+        Integer roll = null;
+        ResultSet set = null;
+        try {
+            String viewName = "SELECT order_id FROM orderinformation WHERE order_code = ?";
+            PreparedStatement ps = con.prepareStatement(viewName);
+            ps.setString(1, orderCode);
+            set = ps.executeQuery();
+            while(set.next())
+            {
+                roll = set.getInt("order_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public List<Order> getAllOrder() {
+        List<Order> list = new ArrayList<>();
+        try {
+            String getAllOrder = "SELECT * FROM orderinformation";
+            PreparedStatement ps = con.prepareStatement(getAllOrder);
+            ResultSet set = ps.executeQuery();
+            while (set.next()) {
+                Order o = new Order();
+                o.setOrderCode(set.getString("order_code"));
+                o.setCustomerAddress(set.getString("customer_name"));
+                o.setCustomerAddress(set.getString("customer_address"));
+                o.setOrderDate(set.getDate("order_date"));
+                o.setGrandTotal(set.getDouble("grand_total"));
+                o.setRemarks(set.getString("remarks"));
+                o.setCreatedDate(set.getString("created_date"));
+                o.setCreatedName(set.getInt("created_by"));
+                o.setModifedName(set.getInt("modified_by"));
+                o.setModifiedDate(set.getString("modified_date"));
+                o.setStatus(set.getString("statuss"));
+                o.setOrderId(set.getInt("order_id"));
+                list.add(o);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+}
