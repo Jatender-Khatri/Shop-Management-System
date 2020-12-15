@@ -1,0 +1,153 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.daoImpl;
+
+import com.shop.DbConnection.DbConnection;
+import com.shop.dao.SellTranscationHistoryDao;
+import com.shop.model.Account;
+import com.shop.model.Order;
+import com.shop.model.SellTranscationHistory;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ *
+ * @author Jatendar
+ */
+public class SellTransactionHistoryDaoImpl implements SellTranscationHistoryDao {
+
+    static Connection con = DbConnection.getConnection();
+
+    @Override
+    public Integer addSellTranscationHistory(SellTranscationHistory sellTranscationHistory) {
+        Integer roll = null;
+        try {
+            java.sql.Date date = new java.sql.Date(sellTranscationHistory.getSellingDate().getTime());
+            String addQuery = "INSERT INTO sell_transaction_history(account_id,selling_date,order_id,amount,remarks,created_date,statuss) value(?,?,?,?,?,CURDATE(),?)";
+            PreparedStatement preparedStatement = con.prepareStatement(addQuery);
+            preparedStatement.setInt(1, sellTranscationHistory.getAccount().getAccountId());
+            preparedStatement.setDate(2, date);
+            preparedStatement.setInt(3, sellTranscationHistory.getOrder().getOrderId());
+            preparedStatement.setString(4, sellTranscationHistory.getAmount());
+            preparedStatement.setString(5, sellTranscationHistory.getRemarks());
+//            preparedStatement.setInt(6, sellTranscationHistory.getCreatedName());           
+            preparedStatement.setString(6, sellTranscationHistory.getStatus());
+            roll = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer deleteSellTranscationHistory(Integer sellTranscationHistoryId) {
+        Integer roll = null;
+        try {
+            String deleteQuery = "DELETE FROM sell_transaction_history WHERE sell_transaction_history_id=?";
+            PreparedStatement ps = con.prepareStatement(deleteQuery);
+            ps.setInt(1, sellTranscationHistoryId);
+            roll = ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer updateSellTranscationHistory(SellTranscationHistory sellTranscationHistory) {
+        Integer roll = null;
+        try {
+            java.sql.Date date = new java.sql.Date(sellTranscationHistory.getSellingDate().getTime());
+            String updateQuery = "UPDATE sell_transaction_history SET account_id =?,selling_date=?,order_id=?,amount=?,remarks=?,modified_date = CURDATE(),statuss=? where sell_transaction_history_id = ?";
+            PreparedStatement preparedStatement = con.prepareStatement(updateQuery);
+            preparedStatement.setInt(1, sellTranscationHistory.getAccount().getAccountId());
+            preparedStatement.setDate(2, date);
+            preparedStatement.setInt(3, sellTranscationHistory.getOrder().getOrderId());
+            preparedStatement.setString(4, sellTranscationHistory.getAmount());
+            preparedStatement.setString(5, sellTranscationHistory.getRemarks());           
+//            preparedStatement.setInt(6, sellTranscationHistory.getModifedName());
+            preparedStatement.setString(6, sellTranscationHistory.getStatus());
+            preparedStatement.setInt(7, sellTranscationHistory.getSellTranscationHistoryId());
+            roll = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public List<SellTranscationHistory> viewAllRecord() {
+        List<SellTranscationHistory> list = new ArrayList<>();
+        try {
+            String viewAll = "select * from sell_transaction_history";
+            PreparedStatement ps = con.prepareStatement(viewAll);
+            ResultSet set = ps.executeQuery();
+            while (set.next()) {
+                SellTranscationHistory history = new SellTranscationHistory();
+                Account a = new Account();
+                a.setAccountId(set.getInt("account_id"));
+                Order o = new Order();
+                o.setOrderId(set.getInt("order_id"));
+                history.setAccount(a);
+                history.setOrder(o);
+                history.setAmount(set.getString("amount"));
+                history.setRemarks(set.getString("remarks"));
+                history.setSellingDate(set.getDate("selling_date"));
+                history.setSellTranscationHistoryId(set.getInt("sell_transaction_history_id"));
+                history.setCreatedDate(set.getString("created_date"));
+                history.setCreatedName(set.getInt("created_by"));
+                history.setModifiedDate(set.getString("modified_date"));
+                history.setModifedName(set.getInt("modified_by"));
+                history.setStatus(set.getString("statuss"));
+                list.add(history);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
+    public Integer viewByName(String category) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public SellTranscationHistory viewById(Integer sellTranscationHistoryId) {
+        SellTranscationHistory history = new SellTranscationHistory();
+        try {
+            String viewId = "SELECT * FROM sell_transaction_history WHERE sell_transaction_history_id=?";
+            PreparedStatement preparedStatement = con.prepareStatement(viewId);
+            preparedStatement.setInt(1, sellTranscationHistoryId);
+            ResultSet set = preparedStatement.executeQuery();
+            while (set.next()) {
+                Account a = new Account();
+                a.setAccountId(set.getInt("account_id"));
+                Order o = new Order();
+                o.setOrderId(set.getInt("order_id"));
+                history.setAccount(a);
+                history.setOrder(o);
+                history.setAmount(set.getString("amount"));
+                history.setRemarks(set.getString("remarks"));
+                history.setSellingDate(set.getDate("selling_date"));
+                history.setSellTranscationHistoryId(set.getInt("sell_transaction_history_id"));
+                history.setCreatedDate(set.getString("created_date"));
+                history.setCreatedName(set.getInt("created_by"));
+                history.setModifiedDate(set.getString("modified_date"));
+                history.setModifedName(set.getInt("modified_by"));
+                history.setStatus(set.getString("statuss"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return history;
+    }
+
+}
