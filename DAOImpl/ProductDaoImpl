@@ -1,0 +1,213 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.daoImpl;
+
+import com.shop.DbConnection.DbConnection;
+import com.shop.dao.ProductDao;
+import com.shop.model.Category;
+import com.shop.model.Product;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ *
+ * @author Jatendar
+ */
+public class ProductDaoImpl implements ProductDao {
+
+    static Connection con = DbConnection.getConnection();
+
+    @Override
+    public Integer addProduct(Product product) {
+        Integer roll = null;
+        try {
+            String addQuery = "INSERT INTO product(product_name,quantity,price,category_id,remarks,created_date,statuss) value(?,?,?,?,?,CURDATE(),?)";
+            PreparedStatement preparedStatement = con.prepareStatement(addQuery);
+            preparedStatement.setString(1, product.getProductName());
+            preparedStatement.setInt(2, product.getQuantity());
+            preparedStatement.setDouble(3, product.getPrice());
+            preparedStatement.setInt(4, product.getCategory().getCategoryId());
+            preparedStatement.setString(5, product.getRemarks());
+//            preparedStatement.setInt(6, product.getCreatedName());
+            preparedStatement.setString(6, product.getStatus());
+            roll = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer deleteProduct(Integer productId) {
+        Integer roll = null;
+        try {
+            String deleteQuery = "DELETE FROM product WHERE product_id=?";
+            PreparedStatement ps = con.prepareStatement(deleteQuery);
+            ps.setInt(1, productId);
+            roll = ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer updateProduct(Product product) {
+        Integer roll = null;
+        try {
+            String updateQuery = "UPDATE product SET product_name =?,quantity=?,price=?,category_id=?,remarks=?,modified_date = CURDATE(),statuss=? where product_id = ?";
+            PreparedStatement preparedStatement = con.prepareStatement(updateQuery);
+            preparedStatement.setString(1, product.getProductName());
+            preparedStatement.setInt(2, product.getQuantity());
+            
+            preparedStatement.setDouble(3, product.getPrice());
+            preparedStatement.setInt(4, product.getCategory().getCategoryId());
+            preparedStatement.setString(5, product.getRemarks());
+ //           preparedStatement.setInt(6, product.getModifedName());
+            preparedStatement.setString(6, product.getStatus());
+            preparedStatement.setInt(7, product.getProductId());
+            roll = preparedStatement.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public List<Product> viewAllRecord() {
+        List<Product> list = new ArrayList<>();
+        try {
+            String viewAll = "select * from product";
+            PreparedStatement ps = con.prepareStatement(viewAll);
+            ResultSet set = ps.executeQuery();
+            while (set.next()) {
+                Product p = new Product();
+                Category c = new Category();
+                p.setProductName(set.getString("product_name"));
+                p.setProductId(set.getInt("product_id"));
+                p.setPrice(set.getDouble("price"));
+                p.setQuantity(set.getInt("quantity"));
+                
+                p.setRemarks(set.getString("remarks"));
+                p.setCreatedDate(set.getString("created_date"));
+                p.setCreatedName(set.getInt("created_by"));
+                p.setModifiedDate(set.getString("modified_date"));
+                p.setModifedName(set.getInt("modified_by"));
+                p.setStatus(set.getString("statuss"));
+                c.setCategoryId(set.getInt("category_id"));
+                p.setCategory(c);
+                list.add(p);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
+    public Integer viewByName(String productName) {
+        Integer roll = null;
+        ResultSet set = null;
+        try {
+            String viewName = "SELECT product_id FROM product WHERE product_name = ?";
+            PreparedStatement ps = con.prepareStatement(viewName);
+            ps.setString(1, productName);
+            set = ps.executeQuery();
+            if (set.next()) {
+                roll = set.getInt("product_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Product viewById(Integer productId) {
+        Product p = new Product();
+        try {
+            String viewId = "SELECT * FROM product WHERE product_id=?";
+            PreparedStatement preparedStatement = con.prepareStatement(viewId);
+            preparedStatement.setInt(1, productId);
+            ResultSet set = preparedStatement.executeQuery();
+            while (set.next()) {
+                Category c = new Category();
+                p.setProductName(set.getString("product_name"));
+                p.setProductId(set.getInt("product_id"));
+                p.setPrice(set.getDouble("price"));
+                p.setQuantity(set.getInt("quantity"));
+                
+                p.setRemarks(set.getString("remarks"));
+                p.setCreatedDate(set.getString("created_date"));
+                p.setCreatedName(set.getInt("created_by"));
+                p.setModifiedDate(set.getString("modified_date"));
+                p.setModifedName(set.getInt("modified_by"));
+                p.setStatus(set.getString("statuss"));
+                c.setCategoryId(set.getInt("category_id"));
+                p.setCategory(c);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return p;
+    }
+
+    @Override
+    public Integer reduceProduct(Product product, int reduceQuantity) {
+        Integer roll = null;
+        try {
+            String reduceProducgt = "UPDATE product SET quantity = ? WHERE product_id=?";
+            PreparedStatement pstmt = con.prepareStatement(reduceProducgt);
+            pstmt.setInt(1, reduceQuantity);
+            pstmt.setInt(2, product.getProductId());
+            
+            roll = pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer plusProduct(Product product, int plusQuantity) {
+        Integer roll = null;
+        try {
+            String plusProduct = "UPDATE product SET quantity = ? WHERE product_id=?";
+            PreparedStatement pstmt = con.prepareStatement(plusProduct);
+            pstmt.setInt(1, plusQuantity);
+            pstmt.setInt(2, product.getProductId());
+            
+            roll = pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer productQuantity(Integer productID) {
+       Integer roll = null;
+       ResultSet set = null;
+        try {
+            String productQuantitiy = "SELECT quantity FROM product WHERE product_id = ?";
+            PreparedStatement ps = con.prepareStatement(productQuantitiy);
+            ps.setInt(1, productID);
+            set = ps.executeQuery();
+            if(set.next())
+            {
+                roll = set.getInt("quantity");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+       return roll;
+    }
+
+}
