@@ -1,0 +1,30 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.DbConnection;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+
+/**
+ *
+ * @author Jatendar
+ */
+public class DbConnection {
+    public static Connection getConnection() {
+        Connection con = null;
+        if (con == null) {
+            try {
+                Class.forName("com.mysql.jdbc.Driver");
+                con = (Connection) DriverManager.getConnection("jdbc:mysql://localhost:3306/shopmanagementsystem", "root", "jatender123");
+                System.out.println("Successfully Connnected...");
+                
+            } catch (Exception exe) {
+                exe.printStackTrace();
+            }
+        }
+        return con;
+    }   
+}
