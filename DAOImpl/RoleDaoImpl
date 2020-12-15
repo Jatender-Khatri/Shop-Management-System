@@ -1,0 +1,124 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.daoImpl;
+
+import com.shop.DbConnection.DbConnection;
+import com.shop.dao.RoleDao;
+import com.shop.model.Role;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ *
+ * @author Jatendar
+ */
+public class RoleDaoImpl implements RoleDao {
+
+    static Connection con = DbConnection.getConnection();
+
+    @Override
+    public Integer addRoll(Role roll) {
+        Integer name = null;
+        try {
+            String addFees = "insert into role(role_name) value(?)";
+            PreparedStatement preparedStatement = con.prepareStatement(addFees);
+            preparedStatement.setString(1, roll.getName());
+            name = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return name;
+    }
+
+    @Override
+    public Integer updateRoll(Role roll) {
+        Integer name = null;
+        try {
+            String updateFees = "update role set role_name = ? where role_id = ?";
+            PreparedStatement preparedStatement = con.prepareStatement(updateFees);
+            preparedStatement.setString(1, roll.getName());
+            preparedStatement.setInt(2, roll.getId());
+            name = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return name;
+    }
+
+    @Override
+    public Integer deleteRoll(Integer id) {
+        Integer roll = null;
+        try {
+            String deleteFees = "delete from role where role_id = ?";
+            PreparedStatement preparedStatement = con.prepareStatement(deleteFees);
+            preparedStatement.setInt(1, id);
+            roll = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public List<Role> viewAllRecord() {
+        List<Role> b = new ArrayList<>();
+        try {
+            String viewAll = "select * from role";
+            PreparedStatement statment = con.prepareStatement(viewAll);
+            ResultSet set = statment.executeQuery();
+            while (set.next()) {
+                Role batch = new Role();
+                batch.setName(set.getString("role_name"));
+                batch.setId(set.getInt("role_id"));
+                b.add(batch);
+            }
+        } catch (SQLException exe) {
+            exe.printStackTrace();
+        }
+        return b;
+    }
+
+    @Override
+    public Integer viewByName(String permissionName) {
+        Integer roll = null;
+        ResultSet set = null;
+        try {
+            String query = "select role_id from role where role_name = ?";
+            PreparedStatement statment = con.prepareStatement(query);
+            statment.setString(1, permissionName);
+            set = statment.executeQuery();
+            while (set.next()) {
+                roll = set.getInt("role_id");
+            }
+        } catch (SQLException exe) {
+            exe.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Role viewById(Integer permissionId) {
+        Role g = new Role();
+        try {
+            String viewName = "select * from role where role_id=?";
+            PreparedStatement statment = con.prepareStatement(viewName);
+            statment.setInt(1, permissionId);
+            ResultSet set = statment.executeQuery();
+            while (set.next()) {
+                g.setId(set.getInt("role_id"));
+                g.setName(set.getString("role_name"));
+            }
+        } catch (SQLException exe) {
+            exe.printStackTrace();
+        }
+        return g;
+    }
+
+}
