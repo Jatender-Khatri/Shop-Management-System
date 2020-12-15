@@ -1,0 +1,762 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.Frame;
+
+import com.shop.DbConnection.DbConnection;
+import com.shop.dao.CategoryDao;
+import com.shop.dao.OrderDao;
+import com.shop.dao.OrderDetailsDao;
+import com.shop.dao.ProductDao;
+import com.shop.daoImpl.CategoryDaoImpl;
+import com.shop.daoImpl.OrderDaoImple;
+import com.shop.daoImpl.OrderDetailsDaoImpls;
+//import com.shop.daoImpl.OrderDetailsDaoImpl;
+import com.shop.daoImpl.ProductDaoImpl;
+import com.shop.model.Category;
+import com.shop.model.Order;
+import com.shop.model.OrderDetails;
+import com.shop.model.Product;
+import java.sql.Connection;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
+/**
+ *
+ * @author Jatendar
+ */
+public class OrderFrame extends javax.swing.JFrame {
+
+    /**
+     * Creates new form OrddddFrame
+     */
+    Object columns[] = {"ID", "Product", "Order Code", "Selling Price", "Quantity", "Total", "Created Date", "Created By", "Modified Date", "Modified By"};
+    DefaultTableModel model = new DefaultTableModel(columns, 0);
+
+    public OrderFrame() {
+        initComponents();
+        fillProductCombo();
+        fillProductTable();
+        randomNumber();
+        //generateOrderCode();
+        if (i != 0) {
+            fillOrderMenu();
+        }
+        updateItemButton.setEnabled(false);
+        deleteItemButton.setEnabled(false);
+
+        currentOrderCode =randomNumber();
+    }
+    int i = 0;
+    static Connection con = DbConnection.getConnection();
+    ProductDao productDAOImpl = new ProductDaoImpl();
+    OrderDao orderDAOImpl = new OrderDaoImple();
+    OrderDetailsDao orderDetailsDAOImpl = new OrderDetailsDaoImpls();
+    CategoryDao categoryDAOImpl = new CategoryDaoImpl();
+    Product product = null;
+    static Order order = null;
+    static Integer id = null;
+    static Integer productId = null;
+    Double sellingPrice = null;
+    Integer quantity = null;
+    Integer orderedItemId = null;
+    String orderCode = null;
+    String currentCustomerName = null;
+    String currentCustomerAddress = null;
+    String currentOrderCode = null;
+    Order currentOrder = null;
+    Category c = null;
+    static Integer noOfTimeButtonClicked = 0;
+
+    public void fillProductCombo() {
+        List<Product> list = productDAOImpl.viewAllRecord();
+        productCombo.addItem("---- Select Product -----");
+        for (Product b : list) {
+            productCombo.addItem(b.getProductName());
+        }
+    }
+
+    public void fillOrderMenu() {
+
+        model = new DefaultTableModel(columns, 0);
+        Order ord = new Order();
+        ord.setOrderCode(currentOrderCode);
+        List<OrderDetails> allDetailses = orderDetailsDAOImpl.getAllOrderDetails();
+
+        for (OrderDetails odt : allDetailses) {
+            Product p = productDAOImpl.viewById(odt.getProduct().getProductId());
+            Object rowData[] = {odt.getOrderDetailID(), p.getProductName(),codeText.getText(), odt.getSellingPrice(), odt.getQuantity(), odt.getTotal(), odt.getCreatedDate(), odt.getCreatedName(), odt.getModifiedDate(), odt.getModifedName()};
+            model.addRow(rowData);
+            orderedTable.setModel(model);
+        }
+    }
+
+    public Double getGrandTotal() {
+        double sum = 0.0;
+        if (orderedTable.getModel() == null) {
+        } else {
+            for (int i = 0; i < orderedTable.getRowCount(); i++) {
+                sum += Double.parseDouble(orderedTable.getValueAt(i, 5).toString());
+            }
+        }
+        return sum;
+    }
+
+    public void clearFields() {
+        productCombo.setSelectedIndex(0);
+        priceText.setText(null);
+        quantityText.setText(null);
+        updateItemButton.setEnabled(false);
+        deleteItemButton.setEnabled(false);
+    }
+
+    public void fillProductTable() {
+        Object columnAdd[] = {"Product Id", "Product Name", "Quantity", "Price", "Category", "Remarks", "Created Date", "Created By", "Modified Date", "Modified By", "Status"};
+        DefaultTableModel model = new DefaultTableModel(columnAdd, 0);
+        List<Product> list = productDAOImpl.viewAllRecord();
+        for (Product v : list) {
+            c = categoryDAOImpl.viewById(v.getCategory().getCategoryId());
+            Object rowAdd[] = {v.getProductId(), v.getProductName(), v.getQuantity(), v.getPrice(), c.getCategory(), v.getRemarks(), v.getCreatedDate(), v.getCreatedName(), v.getModifiedDate(), v.getModifedName(), v.getStatus()};
+            model.addRow(rowAdd);
+            productTable.setModel(model);
+        }
+    }
+
+    public String randomNumber() {
+        Random random = new Random();
+        Integer number = random.nextInt(1000000) + 1;
+        String var = String.valueOf(number);
+        codeText.setText("JK-" + var);
+        return codeText.getText();
+    }
+
+//    static public String generateOrderCode() {
+//        String Capital_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+//        String numbers = "0123456789";
+//        Random rndm_method = new Random();
+//        String password = "";
+//        for (int i = 0; i < 6; i++) {
+//            if (i == 2) {
+//                password += "-";
+//            }
+//            if (i == 0 || i == 1) {
+//                password += Capital_chars.charAt(rndm_method.nextInt(Capital_chars.length()));
+//            } else {
+//                password += numbers.charAt(rndm_method.nextInt(numbers.length()));
+//            }
+//        }
+//        return password;
+//    }
+    public void fillAutoSellingPrice() {
+        String productName = productCombo.getSelectedItem().toString();
+        Integer productId = productDAOImpl.viewByName(productName);
+    }
+
+    public Integer addCartItemsToDatabase() {
+        int returnResult = 0;
+        for (int i = 0; i < orderedTable.getRowCount(); i++) {
+
+            OrderDetails odt = new OrderDetails();
+
+            Order ord = new Order();
+            Product p = productDAOImpl.viewById(productDAOImpl.viewByName(orderedTable.getValueAt(i, 1).toString()));
+
+            Double sp = Double.valueOf(orderedTable.getValueAt(i, 3).toString());
+            Integer qt = Integer.valueOf(orderedTable.getValueAt(i, 4).toString());
+
+            ord.setOrderCode(orderedTable.getValueAt(i, 2).toString());
+
+            odt.setOrder(ord);
+            odt.setProduct(p);
+            odt.setSellingPrice(sp);
+            odt.setQuantity(qt);
+            odt.setTotal(sp * qt);
+
+            Integer result = orderDetailsDAOImpl.addOrderDetails(odt);
+            if (result > 0) {
+                int result2 = productDAOImpl.reduceProduct(p, qt);
+                returnResult = 1;
+            }
+        }
+        return returnResult;
+    }
+
+    public void addItemToCart(int num) {
+
+        Object rowData[] = {num, product.getProductName(), codeText.getText(), sellingPrice, quantity, quantity * sellingPrice, new Date(), "None", "None", "None"};
+
+        model.addRow(rowData);
+        orderedTable.setModel(model);
+    }
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
+    private void initComponents() {
+
+        jPanel1 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        codeText = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
+        productCombo = new javax.swing.JComboBox<>();
+        customerText = new javax.swing.JLabel();
+        nameText = new javax.swing.JTextField();
+        jLabel5 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        addressText = new javax.swing.JTextArea();
+        ds = new javax.swing.JLabel();
+        dateText = new org.jdesktop.swingx.JXDatePicker();
+        ds1 = new javax.swing.JLabel();
+        priceText = new javax.swing.JTextField();
+        ds2 = new javax.swing.JLabel();
+        quantityText = new javax.swing.JTextField();
+        ds3 = new javax.swing.JLabel();
+        totalText = new javax.swing.JTextField();
+        jLabel6 = new javax.swing.JLabel();
+        jPanel2 = new javax.swing.JPanel();
+        newOrderButton = new javax.swing.JButton();
+        orderNowButton = new javax.swing.JButton();
+        cancelButton = new javax.swing.JButton();
+        jLabel7 = new javax.swing.JLabel();
+        jPanel3 = new javax.swing.JPanel();
+        addItemButton = new javax.swing.JButton();
+        deleteItemButton = new javax.swing.JButton();
+        updateItemButton = new javax.swing.JButton();
+        resetButton = new javax.swing.JButton();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        orderedTable = new javax.swing.JTable();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        productTable = new javax.swing.JTable();
+        jLabel9 = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
+        jLabel15 = new javax.swing.JLabel();
+        homeButton = new javax.swing.JButton();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel16 = new javax.swing.JLabel();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
+        jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jLabel1.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
+        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel1.setText("Order");
+        jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(123, 13, 150, -1));
+
+        jLabel2.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        jLabel2.setText("Order Code");
+        jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 43, 94, 26));
+
+        codeText.setBackground(new java.awt.Color(204, 204, 204));
+        codeText.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
+        codeText.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        codeText.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(51, 255, 51), 2));
+        jPanel1.add(codeText, new org.netbeans.lib.awtextra.AbsoluteConstraints(133, 42, 185, -1));
+
+        jLabel3.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        jLabel3.setText("Product");
+        jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 75, 94, 26));
+
+        productCombo.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        productCombo.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(51, 255, 0), 2));
+        productCombo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                productComboActionPerformed(evt);
+            }
+        });
+        jPanel1.add(productCombo, new org.netbeans.lib.awtextra.AbsoluteConstraints(133, 75, 185, 26));
+
+        customerText.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        customerText.setText("Customer Name");
+        jPanel1.add(customerText, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 107, 94, 26));
+
+        nameText.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        nameText.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(51, 255, 51), 2));
+        jPanel1.add(nameText, new org.netbeans.lib.awtextra.AbsoluteConstraints(133, 107, 185, 26));
+
+        jLabel5.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        jLabel5.setText("Customer Address");
+        jPanel1.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 144, -1, 26));
+
+        addressText.setColumns(20);
+        addressText.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        addressText.setRows(5);
+        addressText.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(51, 255, 0), 2));
+        jScrollPane1.setViewportView(addressText);
+
+        jPanel1.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(136, 144, 182, 57));
+
+        ds.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        ds.setText("Order Date");
+        jPanel1.add(ds, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 208, 94, 26));
+
+        dateText.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(51, 255, 0), 2));
+        jPanel1.add(dateText, new org.netbeans.lib.awtextra.AbsoluteConstraints(136, 207, 182, -1));
+
+        ds1.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        ds1.setText("Selling Price");
+        jPanel1.add(ds1, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 241, 94, 26));
+
+        priceText.setBackground(new java.awt.Color(204, 204, 204));
+        priceText.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
+        priceText.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        priceText.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(51, 255, 51), 2));
+        jPanel1.add(priceText, new org.netbeans.lib.awtextra.AbsoluteConstraints(136, 240, 182, -1));
+
+        ds2.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        ds2.setText("Quantity");
+        jPanel1.add(ds2, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 273, 94, 26));
+
+        quantityText.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        quantityText.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(51, 255, 51), 2));
+        jPanel1.add(quantityText, new org.netbeans.lib.awtextra.AbsoluteConstraints(136, 274, 182, 26));
+
+        ds3.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        ds3.setText("Grand Total");
+        jPanel1.add(ds3, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 318, 94, 26));
+
+        totalText.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        totalText.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(51, 255, 51), 2));
+        jPanel1.add(totalText, new org.netbeans.lib.awtextra.AbsoluteConstraints(136, 318, 182, 26));
+
+        jLabel6.setFont(new java.awt.Font("Times New Roman", 1, 11)); // NOI18N
+        jLabel6.setText("ORDER");
+        jPanel1.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 355, 43, -1));
+
+        jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
+        jPanel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        newOrderButton.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        newOrderButton.setText("New Order");
+        newOrderButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                newOrderButtonActionPerformed(evt);
+            }
+        });
+        jPanel2.add(newOrderButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 27, 115, -1));
+
+        orderNowButton.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        orderNowButton.setText("Order Now");
+        orderNowButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                orderNowButtonActionPerformed(evt);
+            }
+        });
+        jPanel2.add(orderNowButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 70, 115, -1));
+
+        cancelButton.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        cancelButton.setText("Cancel Order");
+        cancelButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cancelButtonActionPerformed(evt);
+            }
+        });
+        jPanel2.add(cancelButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 106, -1, -1));
+
+        jPanel1.add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 374, 140, 140));
+
+        jLabel7.setFont(new java.awt.Font("Times New Roman", 1, 11)); // NOI18N
+        jLabel7.setText("ITEMS");
+        jPanel1.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(173, 355, 43, -1));
+
+        jPanel3.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
+        jPanel3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        addItemButton.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        addItemButton.setText("Add Item");
+        addItemButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addItemButtonActionPerformed(evt);
+            }
+        });
+        jPanel3.add(addItemButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 13, 121, -1));
+
+        deleteItemButton.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        deleteItemButton.setText("Delete Item");
+        deleteItemButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteItemButtonActionPerformed(evt);
+            }
+        });
+        jPanel3.add(deleteItemButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 75, 121, -1));
+
+        updateItemButton.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        updateItemButton.setText("Update Item");
+        updateItemButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                updateItemButtonActionPerformed(evt);
+            }
+        });
+        jPanel3.add(updateItemButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 44, 121, -1));
+
+        resetButton.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        resetButton.setText("Reset");
+        resetButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                resetButtonActionPerformed(evt);
+            }
+        });
+        jPanel3.add(resetButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(12, 106, 121, -1));
+
+        jPanel1.add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(173, 374, 150, 140));
+
+        orderedTable.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
+        orderedTable.setFont(new java.awt.Font("Times New Roman", 1, 12)); // NOI18N
+        orderedTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        orderedTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                orderedTableMouseClicked(evt);
+            }
+        });
+        jScrollPane2.setViewportView(orderedTable);
+
+        jPanel1.add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(343, 41, 740, 259));
+
+        productTable.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
+        productTable.setFont(new java.awt.Font("Times New Roman", 1, 12)); // NOI18N
+        productTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane3.setViewportView(productTable);
+
+        jPanel1.add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(343, 346, 740, 176));
+
+        jLabel9.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
+        jLabel9.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel9.setText("Available Products");
+        jLabel9.setToolTipText("");
+        jPanel1.add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(579, 318, 192, -1));
+
+        jLabel10.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
+        jLabel10.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel10.setText("Ordered Item");
+        jLabel10.setToolTipText("");
+        jPanel1.add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(593, 13, 192, -1));
+
+        jLabel15.setIcon(new javax.swing.ImageIcon("C:\\Users\\Jatendar\\OneDrive\\Desktop\\MallManagementSystem\\dfadf.jpg")); // NOI18N
+        jPanel1.add(jLabel15, new org.netbeans.lib.awtextra.AbsoluteConstraints(-10, 0, 1130, 540));
+
+        getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 53, -1, -1));
+
+        homeButton.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        homeButton.setText("Home");
+        homeButton.setToolTipText("");
+        homeButton.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(51, 255, 0), 2));
+        homeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                homeButtonActionPerformed(evt);
+            }
+        });
+        getContentPane().add(homeButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(1009, 11, 116, 36));
+
+        jLabel4.setFont(new java.awt.Font("Times New Roman", 1, 24)); // NOI18N
+        jLabel4.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel4.setText("Order Frame");
+        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(390, 10, 379, -1));
+
+        jLabel16.setIcon(new javax.swing.ImageIcon("C:\\Users\\Jatendar\\OneDrive\\Desktop\\MallManagementSystem\\blue background.jpg")); // NOI18N
+        jLabel16.setToolTipText("");
+        getContentPane().add(jLabel16, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 0, 1120, 60));
+
+        pack();
+    }// </editor-fold>                        
+
+    private void homeButtonActionPerformed(java.awt.event.ActionEvent evt) {                                           
+        HomeFrame frame = new HomeFrame();
+        frame.setVisible(true);
+        this.dispose();
+    }                                          
+
+    private void addItemButtonActionPerformed(java.awt.event.ActionEvent evt) {                                              
+        if (nameText.getText().equals("") || addressText.getText().equals("") || quantityText.getText().equals("")) {
+
+            JOptionPane.showMessageDialog(null, "Required details are not enough!", "Please fill all the fields!", 0);
+
+        } else {
+
+            noOfTimeButtonClicked += 1;
+            currentCustomerName = nameText.getText();
+            currentCustomerAddress = addressText.getText();
+
+            OrderDetails odt = new OrderDetails();
+
+            sellingPrice = Double.valueOf(priceText.getText());
+
+            quantity = Integer.valueOf(quantityText.getText());
+            
+
+            if (productDAOImpl.productQuantity(product.getProductId()) >= quantity) {
+
+                addItemToCart(noOfTimeButtonClicked);
+                clearFields();
+                totalText.setText(getGrandTotal().toString());
+
+            } else {
+
+                JOptionPane.showMessageDialog(null, "Required quantity is not available!, availale quantity is " + productDAOImpl.productQuantity(product.getProductId()), "Item quantity exceed!", JOptionPane.WARNING_MESSAGE);
+            }
+        }
+    }                                             
+
+    private void productComboActionPerformed(java.awt.event.ActionEvent evt) {                                             
+        if (productCombo.getSelectedIndex() != 0) {
+            String productName = productCombo.getSelectedItem().toString();
+            Integer productId = productDAOImpl.viewByName(productName);
+            product = productDAOImpl.viewById(productId);
+            priceText.setText(product.getPrice().toString());
+        }
+        if (productCombo.getSelectedIndex() == 0) {
+            priceText.setText("");
+        }
+    }                                            
+
+    private void orderedTableMouseClicked(java.awt.event.MouseEvent evt) {                                          
+        orderedItemId = (Integer) orderedTable.getValueAt(orderedTable.getSelectedRow(), 0);
+
+        if (orderedItemId != null) {
+
+            updateItemButton.setEnabled(true);
+            deleteItemButton.setEnabled(true);
+
+            OrderDetails orderDetails = orderDetailsDAOImpl.getOrderDetailsByID(orderedItemId);
+            Product p = productDAOImpl.viewById(orderDetails.getProduct().getProductId());
+
+            productCombo.setSelectedItem(p.getProductName());
+            priceText.setText(orderDetails.getSellingPrice().toString());
+            quantityText.setText(orderDetails.getQuantity().toString());
+            nameText.setText(currentCustomerName);
+            addressText.setText(currentCustomerAddress);
+
+            updateItemButton.setEnabled(true);
+            deleteItemButton.setEnabled(true);
+        }
+    }                                         
+
+    private void newOrderButtonActionPerformed(java.awt.event.ActionEvent evt) {                                               
+        new OrderFrame().setVisible(true);
+    }                                              
+
+    private void orderNowButtonActionPerformed(java.awt.event.ActionEvent evt) {                                               
+         if (orderedTable.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(null, "You don't have any items to buy!, please add items.", "No items found", JOptionPane.WARNING_MESSAGE);
+        } else {
+
+            int r = addCartItemsToDatabase();
+            if(r > 0){System.out.println("Successfull");}
+            currentOrder = new Order();
+            currentOrder.setOrderCode(currentOrderCode);
+            currentOrder.setOrderDate(new Date());
+            currentOrder.setGrandTotal(getGrandTotal());
+            currentOrder.setCustomerName(currentCustomerName);
+            currentOrder.setCustomerAddress(currentCustomerAddress);
+            
+            
+
+            order = currentOrder;
+            
+            int result = orderDAOImpl.addOrder(currentOrder);
+
+            if (result > 0) {
+                //new PaymentDialog(null, true).setVisible(true);
+                JOptionPane.showMessageDialog(null, "Order Successfull!");
+                currentOrderCode = randomNumber();
+                codeText.setText(currentOrderCode);
+                
+                new OrderFrame().setVisible(true);
+                this.dispose();
+                fillOrderMenu();
+                fillProductTable();
+                clearFields();
+                totalText.setText(getGrandTotal().toString());
+            } else {
+                JOptionPane.showMessageDialog(null, "Error in Order", "Error", JOptionPane.ERROR_MESSAGE);
+
+            }
+         }
+
+    }                                              
+
+    private void resetButtonActionPerformed(java.awt.event.ActionEvent evt) {                                            
+        new OrderFrame();
+        clearFields();
+        fillOrderMenu();
+        fillProductTable();
+    }                                           
+
+    private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {                                             
+        if (orderedTable.getRowCount() == 0) {
+
+            JOptionPane.showMessageDialog(null, "Create Order to cancel", "Order not found!", JOptionPane.WARNING_MESSAGE);
+        } else if (orderedTable.getValueAt(orderedTable.getSelectedRow(), 0) == orderedItemId) {
+
+            OrderDetails odt = orderDetailsDAOImpl.getOrderDetailsByID(orderedItemId);
+            int previousQuantity = odt.getQuantity();
+
+            quantity = Integer.valueOf(quantityText.getText());
+
+            int result2 = orderDetailsDAOImpl.deleteOrderDetails(orderedItemId);
+            int result = productDAOImpl.plusProduct(product, previousQuantity);
+
+            if (result2 > 0) {
+                JOptionPane.showMessageDialog(null, "Order canceled successfully!");
+                orderCode = randomNumber();
+
+                model.removeRow(orderedTable.getSelectedRow());
+                orderedTable.clearSelection();
+                fillOrderMenu();
+                fillProductTable();
+                clearFields();
+                totalText.setText(getGrandTotal().toString());
+            } else {
+                JOptionPane.showMessageDialog(null, "Error in Order Cancellation", "Error", JOptionPane.ERROR_MESSAGE);
+
+            }
+        }
+    
+    }                                            
+
+    private void deleteItemButtonActionPerformed(java.awt.event.ActionEvent evt) {                                                 
+         if (nameText.getText().equals("") || addressText.getText().equals("") || quantityText.getText().equals("")) {
+
+            JOptionPane.showMessageDialog(null, "Required details are not enough!", "Please fill all the fields!", 0);
+
+        } else {
+
+            OrderDetails odt = orderDetailsDAOImpl.getOrderDetailsByID(orderedItemId);
+            int previousQuantity = odt.getQuantity();
+
+            quantity = Integer.valueOf(quantityText.getText());
+
+            int result2 = orderDetailsDAOImpl.deleteOrderDetails(orderedItemId);
+            int result = productDAOImpl.plusProduct(product, previousQuantity);
+
+            if (result2 > 0) {
+                JOptionPane.showMessageDialog(null, "Item removed");
+                orderCode = randomNumber();
+
+                model.removeRow(orderedTable.getSelectedRow());
+                orderedTable.clearSelection();
+                fillOrderMenu();
+                fillProductTable();
+                clearFields();
+                totalText.setText(getGrandTotal().toString());
+            } else {
+                JOptionPane.showMessageDialog(null, "Error in Order", "Error", JOptionPane.ERROR_MESSAGE);
+
+            }
+         }
+    }                                                
+
+    private void updateItemButtonActionPerformed(java.awt.event.ActionEvent evt) {                                                 
+        String q = quantityText.getText().toString();
+        OrderDetails od = new OrderDetails();
+        od.setQuantity(Integer.parseInt(q));
+    }                                                
+
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(OrderFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(OrderFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(OrderFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(OrderFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new OrderFrame().setVisible(true);
+            }
+        });
+    }
+
+    // Variables declaration - do not modify                     
+    private javax.swing.JButton addItemButton;
+    private javax.swing.JTextArea addressText;
+    private javax.swing.JButton cancelButton;
+    private javax.swing.JTextField codeText;
+    private javax.swing.JLabel customerText;
+    private org.jdesktop.swingx.JXDatePicker dateText;
+    private javax.swing.JButton deleteItemButton;
+    private javax.swing.JLabel ds;
+    private javax.swing.JLabel ds1;
+    private javax.swing.JLabel ds2;
+    private javax.swing.JLabel ds3;
+    private javax.swing.JButton homeButton;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel15;
+    private javax.swing.JLabel jLabel16;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel9;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JTextField nameText;
+    private javax.swing.JButton newOrderButton;
+    private javax.swing.JButton orderNowButton;
+    private javax.swing.JTable orderedTable;
+    private javax.swing.JTextField priceText;
+    private javax.swing.JComboBox<String> productCombo;
+    private javax.swing.JTable productTable;
+    private javax.swing.JTextField quantityText;
+    private javax.swing.JButton resetButton;
+    private javax.swing.JTextField totalText;
+    private javax.swing.JButton updateItemButton;
+    // End of variables declaration                   
+}
