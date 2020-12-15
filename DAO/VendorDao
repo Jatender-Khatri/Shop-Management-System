@@ -1,0 +1,22 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.dao;
+
+import com.shop.model.Vendor;
+import java.util.List;
+
+/**
+ *
+ * @author Jatendar
+ */
+public interface VendorDao {
+    public Integer addVendor(Vendor vendor);
+    public Integer deleteVendor(Integer vendorId);
+    public Integer updateVendor(Vendor vendor);
+    public List<Vendor> viewAllRecord();
+    public Integer viewByName(String vendorName);
+    public Vendor viewById(Integer vendorId);
+}
