@@ -1,0 +1,151 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.daoImpl;
+
+import com.shop.DbConnection.DbConnection;
+import com.shop.dao.UserDao;
+import com.shop.model.Role;
+import com.shop.model.User;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ *
+ * @author Jatendar
+ */
+public class UserDaoImpl implements UserDao {
+
+    static Connection con = DbConnection.getConnection();
+
+    @Override
+    public Integer addUser(User user) {
+        Integer roll = null;
+        try {
+            String addQuery = "insert into users(role_id,username,password,email,phone_number,address) value(?,?,?,?,?,?)";
+            System.out.println("Query Run Successfully");
+            PreparedStatement statement = con.prepareStatement(addQuery);
+            System.out.println("Query Does Not Run Successfully");
+            statement.setInt(1, user.getRoll().getId());
+            statement.setString(2, user.getUserName());
+            statement.setString(3, user.getPassword());
+            statement.setString(4, user.getEmail());
+            statement.setString(5, user.getNumber());
+            statement.setString(6, user.getAddress());
+            roll = statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer deleteUser(Integer id) {
+        Integer roll = null;
+        try {
+            String deleteQuery = "delete from users where user_id = ?";
+            PreparedStatement statement = con.prepareStatement(deleteQuery);
+            statement.setInt(1, id);
+            roll = statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer updateUser(User user) {
+        Integer roll = null;
+        try {
+            String updateQuery = "update users set role_id = ?, username=? , password= ?,email= ?, phone_number=?,address= ? where user_id = ?";
+            PreparedStatement ps = con.prepareStatement(updateQuery);
+            ps.setInt(1, user.getRoll().getId());
+            ps.setString(2, user.getUserName());
+            ps.setString(3, user.getPassword());
+            ps.setString(4, user.getEmail());
+            ps.setString(5, user.getNumber());
+            ps.setString(6, user.getAddress());
+            ps.setInt(7, user.getId());
+            roll = ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public List<User> viewAllUser() {
+        List<User> b = new ArrayList<>();
+        try {
+            String viewName = "select * from users";
+            PreparedStatement statment = con.prepareStatement(viewName);
+            ResultSet set = statment.executeQuery();
+            while (set.next()) {
+                User g = new User();
+                g.setId(set.getInt("user_id"));
+                g.setUserName(set.getString("username"));
+                g.setEmail(set.getString("email"));
+                g.setAddress(set.getString("address"));
+                g.setPassword(set.getString("password"));
+                g.setNumber(set.getString("phone_number"));
+                Role roll = new Role();
+                roll.setId(set.getInt("role_id"));
+                g.setRoll(roll);
+                b.add(g);
+            }
+        } catch (SQLException exe) {
+            exe.printStackTrace();
+        }
+        return b;
+    }
+
+    @Override
+    public Integer viewByName(String name) {
+        Integer roll = null;
+        ResultSet set = null;
+        try {
+            String query = "select user_id from users where username = ?";
+            PreparedStatement statment = con.prepareStatement(query);
+            statment.setString(1, name);
+            set = statment.executeQuery();
+            while (set.next()) {
+                roll = set.getInt("user_id");
+            }
+        } catch (SQLException exe) {
+            exe.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public User viewById(Integer id) {
+        User g = new User();
+        try {
+            String viewName = "select * from users where user_id=?";
+            PreparedStatement statment = con.prepareStatement(viewName);
+            statment.setInt(1, id);
+            ResultSet set = statment.executeQuery();
+            while (set.next()) {
+                g.setId(set.getInt("user_id"));
+                g.setUserName(set.getString("username"));
+                g.setEmail(set.getString("email"));
+                g.setAddress(set.getString("address"));
+                g.setPassword(set.getString("password"));
+                g.setNumber(set.getString("phone_number"));
+                Role roll = new Role();
+                roll.setId(set.getInt("role_id"));
+                g.setRoll(roll);
+            }
+        } catch (SQLException exe) {
+            exe.printStackTrace();
+        }
+        return g;
+    }
+
+}
