@@ -1,0 +1,177 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.daoImpl;
+
+import com.shop.DbConnection.DbConnection;
+import com.shop.dao.RolePermissionDao;
+import com.shop.model.Permission;
+import com.shop.model.Role;
+import com.shop.model.RolePermission;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ *
+ * @author Jatendar
+ */
+public class RolePermissionDaoImpl implements RolePermissionDao {
+
+    static Connection con = DbConnection.getConnection();
+
+    @Override
+    public Integer addRollPermissions(Role roll,Permission permission) {
+        Integer name = null;
+        try {
+            String addFees = "insert into role_permission(role_id,pemission_id) value(?,?)";
+            PreparedStatement preparedStatement = con.prepareStatement(addFees);
+            preparedStatement.setInt(1, roll.getId());
+            preparedStatement.setInt(2, permission.getId());
+            name = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return name;
+    }
+
+    @Override
+    public Integer updateRollPermission(RolePermission roll) {
+        Integer name = null;
+        try {
+            String updateFees = "update role_permission set role_id = ?, pemission_id = ? where role_permission_id = ?";
+            PreparedStatement preparedStatement = con.prepareStatement(updateFees);
+            preparedStatement.setInt(1, roll.getRole().getId());
+            preparedStatement.setInt(2, roll.getPermission().getId());
+            name = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return name;
+    }
+
+    @Override
+    public Integer deleteRollPermission(Integer id) {
+         Integer roll = null;
+        try {
+            String deleteFees = "delete from role_permission where role_permission_id = ?";
+            PreparedStatement preparedStatement = con.prepareStatement(deleteFees);
+            preparedStatement.setInt(1, id);
+            roll = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public List<RolePermission> viewAllRecord() {
+        List<RolePermission> b = new ArrayList<>();
+        try {
+            String viewAll = "select * from role_permission";
+            PreparedStatement statment = con.prepareStatement(viewAll);
+            ResultSet set = statment.executeQuery();
+            while (set.next()) {
+                RolePermission batch = new RolePermission();
+                batch.setId(set.getInt("role_permission_id"));
+                Role roll = new Role();
+                roll.setId(set.getInt("role_id"));
+                Permission permission = new Permission();
+                permission.setId(set.getInt("pemission_id"));   
+                batch.setRole(roll);
+                batch.setPermission(permission);
+                b.add(batch);
+            }
+        } catch (SQLException exe) {
+            exe.printStackTrace();
+        }
+        return b;
+    }
+
+    @Override
+    public RolePermission viewByIds(Role id, Permission name) {
+        RolePermission rp = new RolePermission();
+        try {
+            String viewName = "select * from role_permission where role_id=? and permission_id=?";
+            PreparedStatement statment = con.prepareStatement(viewName);
+            ResultSet set = statment.executeQuery();
+            while (set.next()) {
+
+                Role roll = new Role();
+                roll.setId(set.getInt("role_id"));
+                Permission permission = new Permission();
+                permission.setId(set.getInt("pemission_id"));
+                rp.setRole(roll);
+                rp.setPermission(permission);
+            }
+        } catch (SQLException exe) {
+            exe.printStackTrace();
+        }
+        return rp;
+    }
+
+    @Override
+    public Integer addRollPermission(RolePermission rolePermission) {
+         Integer name = null;
+        try {
+            String addFees = "insert into role_permission(role_id,pemission_id) value(?,?)";
+            PreparedStatement preparedStatement = con.prepareStatement(addFees);
+            preparedStatement.setInt(1, rolePermission.getRole().getId());
+            preparedStatement.setInt(2, rolePermission.getPermission().getId());
+            name = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return name;
+    }
+
+    @Override
+    public RolePermission viewById(Integer id) {
+       RolePermission batch = new RolePermission();
+        try {
+            String viewName = "select * from role_permission where role_permission_id=?";
+            PreparedStatement statment = con.prepareStatement(viewName);
+            statment.setInt(1, id);
+            
+            ResultSet set = statment.executeQuery();
+            while (set.next()) {
+
+                Role roll = new Role();
+                roll.setId(set.getInt("role_id"));
+                Permission permission = new Permission();
+                permission.setId(set.getInt("pemission_id"));
+                batch.setRole(roll);
+                batch.setPermission(permission);
+            }
+        } catch (SQLException exe) {
+            exe.printStackTrace();
+        }
+        return batch;
+    }
+
+    @Override
+    public Integer getRolePermissionId(Role r, Permission p) {
+        Integer id = null;
+        try {
+            String viewName = "select * from role_permission where role=? and permission=?";
+            PreparedStatement statment = con.prepareStatement(viewName);
+            statment.setInt(1, r.getId());
+            statment.setInt(2, p.getId());
+            
+            ResultSet set = statment.executeQuery();
+            while (set.next()) {
+
+                id = set.getInt("role_permission_id");
+            }
+        } catch (SQLException exe) {
+            exe.printStackTrace();
+        }
+        return id;
+    }
+
+}
