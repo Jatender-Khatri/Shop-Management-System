@@ -1,0 +1,156 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.daoImpl;
+
+import com.shop.DbConnection.DbConnection;
+import com.shop.dao.VendorDao;
+import com.shop.model.Vendor;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ *
+ * @author Jatendar
+ */
+public class VendorDaoImpl implements VendorDao {
+
+    static Connection con = DbConnection.getConnection();
+
+    @Override
+    public Integer addVendor(Vendor vendor) {
+        Integer roll = null;
+        try {
+            String addQuery = "INSERT INTO vendor(vendor_name,email,address,phone_number,remarks,created_date,statuss) value(?,?,?,?,?,CURDATE(),?)";
+            PreparedStatement ps = con.prepareStatement(addQuery);
+            ps.setString(1, vendor.getVendorName());
+            ps.setString(2, vendor.getEmail());
+            ps.setString(3, vendor.getAddress());
+            ps.setString(4, vendor.getPhoneNumber());
+            ps.setString(5, vendor.getRemarks());
+//            ps.setInt(6, vendor.getCreatedName());
+            ps.setString(6, vendor.getStatus());
+            roll = ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer deleteVendor(Integer vendorId) {
+        Integer roll = null;
+        try {
+            String deleteQuery = "DELETE FROM vendor WHERE vendor_id=?";
+            PreparedStatement ps = con.prepareStatement(deleteQuery);
+            ps.setInt(1, vendorId);
+            roll = ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer updateVendor(Vendor vendor) {
+        Integer roll = null;
+        try {
+            String updateQuery = "UPDATE vendor SET vendor_name =?,email=?,address=?,phone_number=?,remarks=?,modified_date = CURDATE(),statuss=? where vendor_id = ?";
+            PreparedStatement ps = con.prepareStatement(updateQuery);
+            ps.setString(1, vendor.getVendorName());
+            ps.setString(2, vendor.getEmail());
+            ps.setString(3, vendor.getAddress());
+            ps.setString(4, vendor.getPhoneNumber());
+            ps.setString(5, vendor.getRemarks());
+//            ps.setInt(6, vendor.getModifedName());
+            ps.setString(6, vendor.getStatus());
+            ps.setInt(7, vendor.getVendorId());
+            roll = ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public List<Vendor> viewAllRecord() {
+        List<Vendor> list = new ArrayList<>();
+        try {
+            String viewAll = "select * from vendor";
+            PreparedStatement ps = con.prepareStatement(viewAll);
+            ResultSet set = ps.executeQuery();
+            while (set.next()) {                
+                Vendor v = new Vendor();
+                v.setVendorName(set.getString("vendor_name"));
+                v.setAddress(set.getString("address"));
+                v.setEmail(set.getString("email"));
+                v.setPhoneNumber(set.getString("phone_number"));
+                v.setRemarks(set.getString("remarks"));
+                v.setStatus(set.getString("statuss"));
+                v.setVendorId(set.getInt("vendor_id"));
+                v.setModifedName(set.getInt("modified_by"));
+                v.setCreatedName(set.getInt("created_by"));
+                v.setCreatedDate(set.getString("created_date"));
+                v.setModifiedDate(set.getString("modified_date"));
+                list.add(v);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
+    public Integer viewByName(String vendorName) {
+        Integer roll = null;
+        ResultSet set = null;
+        try {
+            String viewName = "SELECT vendor_id FROM vendor WHERE vendor_name = ?";
+            PreparedStatement ps = con.prepareStatement(viewName);
+            ps.setString(1, vendorName);
+            set = ps.executeQuery();
+            while(set.next())
+            {
+                roll = set.getInt("vendor_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Vendor viewById(Integer vendorId) {
+        Vendor  v = new Vendor();
+        try {
+            String viewId = "SELECT * FROM vendor WHERE vendor_id=?";
+            PreparedStatement preparedStatement = con.prepareStatement(viewId);
+            preparedStatement.setInt(1, vendorId);
+            ResultSet set = preparedStatement.executeQuery();
+            while(set.next())
+            {
+                v.setVendorName(set.getString("vendor_name"));
+                v.setAddress(set.getString("address"));
+                v.setEmail(set.getString("email"));
+                v.setPhoneNumber(set.getString("phone_number"));
+                v.setRemarks(set.getString("remarks"));
+                v.setStatus(set.getString("statuss"));
+                v.setVendorId(set.getInt("vendor_id"));
+                v.setModifedName(set.getInt("modified_by"));
+                v.setCreatedName(set.getInt("created_by"));
+                v.setCreatedDate(set.getString("created_date"));
+                v.setModifiedDate(set.getString("modified_date"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return v;
+    }
+
+}
