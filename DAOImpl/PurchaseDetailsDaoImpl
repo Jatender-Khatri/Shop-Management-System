@@ -1,0 +1,153 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.daoImpl;
+
+import com.shop.DbConnection.DbConnection;
+import com.shop.dao.PurchaseDetailDao;
+import com.shop.model.Product;
+import com.shop.model.Purchase;
+import com.shop.model.PurchaseDetails;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ *
+ * @author Jatendar
+ */
+public class PurchaseDetailsDaoImpl implements PurchaseDetailDao {
+
+    static Connection con = DbConnection.getConnection();
+
+    @Override
+    public Integer addPurchaseDetails(PurchaseDetails purchaseDetails) {
+        Integer roll = null;
+        try {
+            String addQuery = "INSERT INTO purchase_datails(purchase_id,total,product_id,quantity,purchase_price,created_date,statuss) value(?,?,?,?,?,CURDATE(),?)";
+            PreparedStatement preparedStatement = con.prepareStatement(addQuery);
+            preparedStatement.setInt(1, purchaseDetails.getPurchase().getPurchaseId());
+            preparedStatement.setString(2, purchaseDetails.getTotal());
+            preparedStatement.setInt(3, purchaseDetails.getProduct().getProductId());
+            preparedStatement.setString(4, purchaseDetails.getQuantity());
+            preparedStatement.setString(5, purchaseDetails.getPurchasePrice());
+//            preparedStatement.setInt(6, purchaseDetails.getCreatedName());
+            
+            preparedStatement.setString(6, purchaseDetails.getStatus());
+            roll = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer deletePurchaseDetails(Integer purchaseDetailsId) {
+        Integer roll = null;
+        try {
+            String deleteQuery = "DELETE FROM purchase_datails WHERE purchase_details_id=?";
+            PreparedStatement ps = con.prepareStatement(deleteQuery);
+            ps.setInt(1, purchaseDetailsId);
+            roll = ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer updatePurchaseDetails(PurchaseDetails purchaseDetails) {
+        Integer roll = null;
+        try {
+            String updateQuery = "UPDATE purchase_datails SET purchase_id =?,total=?,product_id=?,quantity=?,purchase_price=?,modified_date = CURDATE(),statuss=? where purchase_details_id = ?";
+            PreparedStatement preparedStatement = con.prepareStatement(updateQuery);
+            preparedStatement.setInt(1, purchaseDetails.getPurchase().getPurchaseId());
+            preparedStatement.setString(2, purchaseDetails.getTotal());
+            preparedStatement.setInt(3, purchaseDetails.getProduct().getProductId());
+            preparedStatement.setString(4, purchaseDetails.getQuantity());
+            preparedStatement.setString(5, purchaseDetails.getPurchasePrice());        
+//            preparedStatement.setInt(6, purchaseDetails.getModifedName());
+            preparedStatement.setString(6, purchaseDetails.getStatus());
+            preparedStatement.setInt(7, purchaseDetails.getPurchaseDetailsId());
+            roll = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public List<PurchaseDetails> viewAllRecord() {
+        List<PurchaseDetails> list = new ArrayList<>();
+        try {
+            String viewAll = "select * from purchase_datails";
+            PreparedStatement ps = con.prepareStatement(viewAll);
+            ResultSet set = ps.executeQuery();
+            while (set.next()) {
+                PurchaseDetails pd = new PurchaseDetails();
+                Product p = new Product();
+                p.setProductId(set.getInt("product_id"));
+                Purchase c = new Purchase();
+                c.setPurchaseId(set.getInt("purchase_id"));
+                pd.setPurchaseDetailsId(set.getInt("purchase_details_id"));
+                pd.setProduct(p);
+                pd.setPurchase(c);
+                pd.setTotal(set.getString("total"));
+                pd.setQuantity(set.getString("quantity"));
+                pd.setPurchasePrice(set.getString("purchase_price"));
+                pd.setCreatedDate(set.getString("created_date"));
+                pd.setCreatedName(set.getInt("created_by"));
+                pd.setModifiedDate(set.getString("modified_date"));
+                pd.setModifedName(set.getInt("modified_by"));
+                pd.setStatus(set.getString("statuss"));
+                list.add(pd);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
+    public Integer viewByName(String purchaseDetailsCode) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public PurchaseDetails viewById(Integer categoryId) {
+        PurchaseDetails pd = new PurchaseDetails();
+        try {
+            String viewId = "SELECT * FROM purchase_datails WHERE purchase_details_id=?";
+            PreparedStatement preparedStatement = con.prepareStatement(viewId);
+            preparedStatement.setInt(1, categoryId);
+            ResultSet set = preparedStatement.executeQuery();
+            while (set.next()) {
+                Product p = new Product();
+                p.setProductId(set.getInt("product_id"));
+                Purchase c = new Purchase();
+                c.setPurchaseId(set.getInt("purchase_id"));
+                pd.setPurchaseDetailsId(set.getInt("purchase_details_id"));
+                pd.setProduct(p);
+                pd.setPurchase(c);
+                pd.setTotal(set.getString("total"));
+                pd.setQuantity(set.getString("quantity"));
+                pd.setPurchasePrice(set.getString("purchase_price"));
+                pd.setCreatedDate(set.getString("created_date"));
+                pd.setCreatedName(set.getInt("created_by"));
+                pd.setModifiedDate(set.getString("modified_date"));
+                pd.setModifedName(set.getInt("modified_by"));
+                pd.setStatus(set.getString("statuss"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return pd;
+    }
+
+}
