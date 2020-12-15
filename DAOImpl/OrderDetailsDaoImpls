@@ -1,0 +1,204 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.daoImpl;
+
+import com.shop.DbConnection.DbConnection;
+import com.shop.dao.OrderDetailsDao;
+import com.shop.model.Order;
+import com.shop.model.OrderDetails;
+import com.shop.model.Product;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ *
+ * @author Jatendar
+ */
+public class OrderDetailsDaoImpls implements OrderDetailsDao {
+
+    static Connection con = DbConnection.getConnection();
+
+    @Override
+    public Integer addOrderDetails(OrderDetails order) {
+        Integer roll = null;
+        try {
+            String addQuery = "INSERT INTO order_details(product_id, selling_price, quantity, total, order_code, created_date,statuss)\n"
+                    + "VALUE(?,?,?,?,?,CURDATE(),?)";
+            PreparedStatement ps = con.prepareStatement(addQuery);
+            ps.setInt(1, order.getProduct().getProductId());
+            ps.setDouble(2, order.getSellingPrice());
+            ps.setInt(3, order.getQuantity());
+            ps.setDouble(4, order.getTotal());
+            ps.setString(5, order.getOrder().getOrderCode());
+            //ps.setInt(6, order.getCreatedName());
+            ps.setString(6, order.getStatus());
+            roll = ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer updateOrderDetails(OrderDetails order) {
+        Integer roll = null;
+        try {
+            String updateQuery = "UPDATE order_details SET product_id = ?, selling_price = ?, quantity = ?, total=?, order_code = ? modified_date = CURDATE(), modifed_by = ?,\n"
+                    + "statuss = ? WHERE order_detail_id  = ?";
+            PreparedStatement ps = con.prepareStatement(updateQuery);
+            ps.setInt(1, order.getProduct().getProductId());
+            ps.setDouble(2, order.getSellingPrice());
+            ps.setInt(0, order.getQuantity());
+            ps.setDouble(4, order.getTotal());
+            ps.setString(5, order.getOrder().getOrderCode());
+            ps.setInt(6, order.getModifedName());
+            ps.setString(7, order.getStatus());
+            ps.setInt(8, order.getOrderDetailID());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Integer deleteOrderDetails(Integer orderID) {
+        Integer roll = null;
+        try {
+            String s = "DELETE  FROM order_details WHERE order_detail_id = ?";
+            PreparedStatement ps = con.prepareStatement(s);
+            ps.setInt(1, orderID);
+            roll = ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public OrderDetails getOrderDetailsByID(Integer orderID) {
+        OrderDetails details = new OrderDetails();
+        ResultSet set = null;
+        try {
+            String s = "SELECT * FROM order_details WHERE order_detail_id = ?";
+            PreparedStatement ps = con.prepareStatement(s);
+            ps.setInt(1, orderID);
+            set = ps.executeQuery();
+            if(set.next())
+            {
+                Product p = new Product();
+                p.setProductId(set.getInt("product_id"));
+                details.setProduct(p);
+                Order o = new Order();
+                o.setOrderCode(set.getString("order_code"));
+                details.setOrder(o);
+                details.setOrderDetailID(set.getInt("order_detail_id"));
+                details.setSellingPrice(set.getDouble("selling_price"));
+                details.setQuantity(set.getInt("quantity"));
+                details.setTotal(set.getDouble("total"));
+                details.setCreatedDate(set.getString("created_date"));
+                details.setModifiedDate(set.getString("modified_date"));
+//                details.setCreatedName(set.getInt("created_name"));
+//                details.setModifedName(set.getInt("modified_name"));
+                details.setStatus(set.getString("statuss"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return   details;
+    }
+
+    @Override
+    public Integer getOrderDetailsIDByORDERID(Integer orderID) {
+         Integer roll = null;
+         ResultSet set = null;
+         try {
+            String orderDetailsIdByOrderId = "SELECT order_detail_id FROM order_details WHERE order_detail_id = ?";
+            PreparedStatement ps = con.prepareStatement(orderDetailsIdByOrderId);
+            ps.setInt(1, orderID);
+            set = ps.executeQuery();
+            if(set.next())
+            {
+                roll = set.getInt("order_detail_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+         return roll;
+    }
+
+    @Override
+    public List<OrderDetails> getAllOrderDetails() {
+        List<OrderDetails> list = new ArrayList<>();
+        ResultSet set = null;
+        try {
+            String getALlOrder = "SELECT * FROM order_details";
+            PreparedStatement ps = con.prepareStatement(getALlOrder);
+            set = ps.executeQuery();
+            while(set.next())
+            {
+                OrderDetails details = new OrderDetails();
+                Product p = new Product();
+                p.setProductId(set.getInt("product_id"));
+                details.setProduct(p);
+                Order o = new Order();
+                o.setOrderCode(set.getString("order_code"));
+                details.setOrder(o);
+                details.setOrderDetailID(set.getInt("order_detail_id"));
+                details.setSellingPrice(set.getDouble("selling_price"));
+                details.setQuantity(set.getInt("quantity"));
+                details.setTotal(set.getDouble("total"));
+                details.setCreatedDate(set.getString("created_date"));
+                details.setModifiedDate(set.getString("modified_date"));
+                details.setCreatedName(set.getInt("created_name"));
+                details.setModifedName(set.getInt("modified_name"));
+                details.setStatus(set.getString("statuss"));
+                list.add(details);
+            }
+        } catch (SQLException e) {
+        }
+        return list;
+    }
+
+    @Override
+    public List<OrderDetails> getAllDetailsOf(Order order) {
+        List<OrderDetails> list = new ArrayList<>();
+        ResultSet set = null;
+        try {
+            String getAllDetail  = "SELECT * FROM order_details WHERE order_code =?";
+            PreparedStatement ps = con.prepareStatement(getAllDetail);
+            ps.setString(1, order.getOrderCode());
+            set = ps.executeQuery();
+            while(set.next())
+            {
+                OrderDetails details = new OrderDetails();
+                Product p = new Product();
+                p.setProductId(set.getInt("product_id"));
+                details.setProduct(p);
+                Order o = new Order();
+                o.setOrderCode(set.getString("order_code"));
+                details.setOrder(o);
+                details.setOrderDetailID(set.getInt("order_detail_id"));
+                details.setSellingPrice(set.getDouble("selling_price"));
+                details.setQuantity(set.getInt("quantity"));
+                details.setTotal(set.getDouble("total"));
+                details.setCreatedDate(set.getString("created_date"));
+                details.setModifiedDate(set.getString("modified_date"));
+                details.setCreatedName(set.getInt("created_by"));
+                details.setModifedName(set.getInt("modified_by"));
+                details.setStatus(set.getString("statuss"));
+                list.add(details);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+}
