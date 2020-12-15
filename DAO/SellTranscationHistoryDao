@@ -1,0 +1,22 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.dao;
+
+import com.shop.model.SellTranscationHistory;
+import java.util.List;
+
+/**
+ *
+ * @author Jatendar
+ */
+public interface SellTranscationHistoryDao {
+    public Integer addSellTranscationHistory(SellTranscationHistory sellTranscationHistory);
+    public Integer deleteSellTranscationHistory(Integer sellTranscationHistoryId);
+    public Integer updateSellTranscationHistory(SellTranscationHistory sellTranscationHistory);
+    public List<SellTranscationHistory> viewAllRecord();
+    public Integer viewByName(String category);
+    public SellTranscationHistory viewById(Integer sellTranscationHistoryId);
+}
