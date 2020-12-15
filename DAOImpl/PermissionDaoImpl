@@ -1,0 +1,124 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.shop.daoImpl;
+
+import com.shop.DbConnection.DbConnection;
+import com.shop.dao.PermissionDao;
+import com.shop.model.Permission;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ *
+ * @author Jatendar
+ */
+public class PermissionDaoImpl implements PermissionDao {
+
+    static Connection con = DbConnection.getConnection();
+
+    @Override
+    public Integer addPermission(Permission permission) {
+        Integer name = null;
+        try {
+            String addFees = "insert into permission(permission_name) value(?)";
+            PreparedStatement preparedStatement = con.prepareStatement(addFees);
+            preparedStatement.setString(1, permission.getName());
+            name = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return name;
+    }
+
+    @Override
+    public Integer updatePermission(Permission permission) {
+        Integer name = null;
+        try {
+            String updateFees = "update permission set permission_name = ? where permission_id = ?";
+            PreparedStatement preparedStatement = con.prepareStatement(updateFees);
+            preparedStatement.setString(1, permission.getName());
+            preparedStatement.setInt(2, permission.getId());
+            name = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return name;
+    }
+
+    @Override
+    public Integer deletePermission(Integer id) {
+        Integer roll = null;
+        try {
+            String deleteFees = "delete from permission where permission_id = ?";
+            PreparedStatement preparedStatement = con.prepareStatement(deleteFees);
+            preparedStatement.setInt(1, id);
+            roll = preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public List<Permission> viewAllRecord() {
+        List<Permission> b = new ArrayList<>();
+        try {
+            String viewAll = "select * from permission";
+            PreparedStatement statment = con.prepareStatement(viewAll);
+            ResultSet set = statment.executeQuery();
+            while (set.next()) {
+                Permission batch = new Permission();
+                batch.setName(set.getString("permission_name"));
+                batch.setId(set.getInt("permission_id"));
+                b.add(batch);
+            }
+        } catch (SQLException exe) {
+            exe.printStackTrace();
+        }
+        return b;
+    }
+
+    @Override
+    public Integer viewByName(String name) {
+        Integer roll = null;
+        ResultSet set = null;
+        try {
+            String query = "select permission_id from permission where permission_name = ?";
+            PreparedStatement statment = con.prepareStatement(query);
+            statment.setString(1, name);
+            set = statment.executeQuery();
+            while (set.next()) {
+                roll = set.getInt("permission_id");
+            }
+        } catch (SQLException exe) {
+            exe.printStackTrace();
+        }
+        return roll;
+    }
+
+    @Override
+    public Permission viewById(Integer id) {
+        Permission g = new Permission();
+        try {
+            String viewName = "select * from permission where permission_id=?";
+            PreparedStatement statment = con.prepareStatement(viewName);
+            statment.setInt(1, id);
+            ResultSet set = statment.executeQuery();
+            while (set.next()) {
+                g.setId(set.getInt("permission_id"));
+                g.setName(set.getString("permission_name"));
+            }
+        } catch (SQLException exe) {
+            exe.printStackTrace();
+        }
+        return g;
+    }
+
+}
